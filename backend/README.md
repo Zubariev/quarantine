@@ -31,6 +31,11 @@ This is the backend server for the Quarantine game, built with FastAPI and Pytho
 
 4. Create a `.env` file with the following variables:
    ```
+   # Either run our setup script from the root directory:
+   cd ..
+   ./create-env-files.sh
+   
+   # Or manually create a .env file with these variables:
    SUPABASE_URL=your_supabase_url
    SUPABASE_SERVICE_KEY=your_supabase_service_key
    STRIPE_API_KEY=your_stripe_api_key

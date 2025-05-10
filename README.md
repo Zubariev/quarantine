@@ -36,10 +36,15 @@ A Tamagotchi-style browser game where you guide a quarantined freelancer through
 
 2. Setup environment variables:
    ```bash
-   # Copy example env files
-   cp frontend/.env.example frontend/.env
-   cp backend/.env.example backend/.env
+   # Either run the setup script to create env files
+   ./create-env-files.sh
+   
+   # Or manually copy example env files if they exist
+   # cp frontend/.env.example frontend/.env
+   # cp backend/.env.example backend/.env
    ```
+   
+   Then edit the `.env` files with your actual values.
 
 3. Install frontend dependencies:
    ```bash

@@ -9,7 +9,14 @@
 - Created detailed API_DOCS.md with examples and usage instructions
 - Added information about client code generation from OpenAPI spec
 
-### 2. Optimized Supabase Integration
+### 2. Environment Setup
+
+- Created environment files setup script `create-env-files.sh`
+- Added `.env` files for both backend and frontend
+- Documented environment variables in README files
+- Ensured proper configuration for local development
+
+### 3. Optimized Supabase Integration
 
 - Added proper error handling for all database operations
 - Implemented edge case handling for missing data
@@ -17,7 +24,7 @@
 - Implemented data validation and schema enforcement
 - Added transaction handling for multi-step operations
 
-### 3. Enhanced Stats Endpoint
+### 4. Enhanced Stats Endpoint
 
 - Added activity effects support to fully update stats based on activities
 - Implemented history tracking for all stat changes
@@ -25,7 +32,7 @@
 - Ensured proper limits enforcement (0-100 for most stats)
 - Added automatic creation of default stats for new users
 
-### 4. Enhanced Schedule Endpoint
+### 5. Enhanced Schedule Endpoint
 
 - Added validation for time conflicts and activity existence
 - Implemented data cleaning to handle invalid blocks
@@ -33,7 +40,7 @@
 - Added multi-day schedule sync endpoint
 - Added support for custom user activities
 
-### 5. Enhanced Shop Endpoint
+### 6. Enhanced Shop Endpoint
 
 - Completed in-game purchase flow with proper inventory updates
 - Added real money purchase flow with Stripe integration
@@ -41,7 +48,7 @@
 - Added item usage system with stat effects
 - Added proper error handling and validation
 
-### 6. Added Unit Tests
+### 7. Added Unit Tests
 
 - Created comprehensive test suites for all endpoints
 - Implemented mock objects for Supabase and Stripe
@@ -49,14 +56,14 @@
 - Added tests for edge cases
 - Included detailed test documentation
 
-### 7. Improved Error Handling
+### 8. Improved Error Handling
 
 - Added consistent error responses across all endpoints
 - Implemented proper exception handling and logging
 - Added validation of all user inputs
 - Ensured API returns appropriate status codes
 
-### 8. Added API Metadata and Documentation
+### 9. Added API Metadata and Documentation
 
 - Enhanced OpenAPI schema with descriptions and examples
 - Added health check endpoints
