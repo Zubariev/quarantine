@@ -1,102 +1,350 @@
 import pytest
-from unittest.mock import patch
+from fastapi.testclient import TestClient
+from unittest.mock import patch, MagicMock
 import json
 
-def test_get_stats_existing_user(client, mock_supabase):
-    """Test getting stats for an existing user."""
-    response = client.get("/routes/stats")
-    assert response.status_code == 200
-    data = response.json()
-    
-    assert data["hunger"] == 70
-    assert data["stress"] == 30
-    assert data["tone"] == 60
-    assert data["health"] == 80
-    assert data["money"] == 2000
+from main import app
+from app.models.game import StatType
 
-def test_get_stats_new_user(client, mock_supabase, mock_authorized_user):
-    """Test getting stats for a new user (should create default stats)."""
-    # Change user ID to simulate a new user
-    mock_authorized_user.sub = "newuser456"
-    
-    response = client.get("/routes/stats")
-    assert response.status_code == 200
-    data = response.json()
-    
-    # Should return default values
-    assert data["hunger"] == 50
-    assert data["stress"] == 50
-    assert data["tone"] == 50
-    assert data["health"] == 50
-    assert data["money"] == 1000
+client = TestClient(app)
 
-def test_update_stats_valid(client, mock_supabase):
-    """Test updating a stat with a valid request."""
-    update_data = {
-        "stat_type": "hunger",
-        "value": -10,
-        "reason": "Ate lunch"
-    }
-    
-    response = client.post("/routes/stats", json=update_data)
-    assert response.status_code == 200
-    data = response.json()
-    
-    # Original hunger was 70, -10 should be 60
-    assert data["hunger"] == 60
+# Mock user for testing
+TEST_USER = {"sub": "test-user-123"}
 
-def test_update_stats_invalid_type(client):
-    """Test updating a stat with an invalid stat type."""
-    update_data = {
-        "stat_type": "invalid_stat",
-        "value": 10
-    }
-    
-    response = client.post("/routes/stats", json=update_data)
-    assert response.status_code == 400
-    assert "Invalid stat type" in response.json()["detail"]
+# Mock the auth dependency
+@pytest.fixture
+def mock_auth():
+    with patch("app.auth.get_authorized_user") as mock:
+        mock.return_value = MagicMock(**TEST_USER)
+        yield mock
 
-def test_update_stats_upper_limit(client, mock_supabase):
-    """Test that stats stay within the upper limit (100)."""
-    update_data = {
-        "stat_type": "health",
-        "value": 50,  # Current health is 80, +50 would be 130 which exceeds the limit
-        "reason": "Health boost"
-    }
-    
-    response = client.post("/routes/stats", json=update_data)
-    assert response.status_code == 200
-    data = response.json()
-    
-    # Health should be capped at 100
-    assert data["health"] == 100
+# Mock the Supabase client
+@pytest.fixture
+def mock_supabase():
+    with patch("app.db.supabase.get_supabase_client") as mock:
+        mock_client = MagicMock()
+        mock.return_value = mock_client
+        yield mock_client
 
-def test_update_stats_lower_limit(client, mock_supabase):
-    """Test that stats stay within the lower limit (0)."""
-    update_data = {
-        "stat_type": "stress",
-        "value": -50,  # Current stress is 30, -50 would be -20 which is below the limit
-        "reason": "Deep meditation"
-    }
+class TestStatsAPI:
+    """Tests for the stats API endpoints"""
     
-    response = client.post("/routes/stats", json=update_data)
-    assert response.status_code == 200
-    data = response.json()
+    def test_get_stats_existing_user(self, mock_auth, mock_supabase):
+        """Test retrieving stats for an existing user"""
+        # Mock the database response
+        mock_execute = MagicMock()
+        mock_execute.data = [{
+            "hunger": 70,
+            "stress": 30,
+            "tone": 60,
+            "health": 80,
+            "money": 2000
+        }]
+        mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_execute
+        
+        # Make the request
+        response = client.get("/stats")
+        
+        # Check the response
+        assert response.status_code == 200
+        assert response.json() == {
+            "hunger": 70,
+            "stress": 30,
+            "tone": 60,
+            "health": 80,
+            "money": 2000
+        }
+        
+        # Verify the correct database calls were made
+        mock_supabase.table.assert_called_with("user_stats")
+        mock_supabase.table.return_value.select.assert_called_with("*")
+        mock_supabase.table.return_value.select.return_value.eq.assert_called_with("user_id", TEST_USER["sub"])
     
-    # Stress should be floored at 0
-    assert data["stress"] == 0
-
-def test_update_money_negative(client, mock_supabase):
-    """Test that money can't go below 0."""
-    update_data = {
-        "stat_type": "money",
-        "value": -3000,  # Current money is 2000, -3000 would be -1000
-        "reason": "Big purchase"
-    }
+    def test_get_stats_new_user(self, mock_auth, mock_supabase):
+        """Test retrieving stats for a new user - should create default stats"""
+        # Mock the database response for a user with no stats
+        empty_response = MagicMock()
+        empty_response.data = []
+        mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value = empty_response
+        
+        # Mock the insert operation
+        mock_insert = MagicMock()
+        mock_supabase.table.return_value.insert.return_value = mock_insert
+        
+        # Make the request
+        response = client.get("/stats")
+        
+        # Check the response - should contain default values
+        assert response.status_code == 200
+        assert response.json() == {
+            "hunger": 50,
+            "stress": 50,
+            "tone": 50,
+            "health": 50,
+            "money": 1000
+        }
+        
+        # Verify that insert was called to create default stats
+        mock_supabase.table.return_value.insert.assert_called_once()
     
-    response = client.post("/routes/stats", json=update_data)
-    assert response.status_code == 200
-    data = response.json()
+    def test_get_stats_db_error(self, mock_auth, mock_supabase):
+        """Test error handling when the database throws an exception"""
+        mock_supabase.table.return_value.select.return_value.eq.return_value.execute.side_effect = Exception("Database error")
+        
+        response = client.get("/stats")
+        
+        assert response.status_code == 500
+        assert "Error retrieving stats" in response.json()["detail"]
     
-    # Money should be floored at 0
-    assert data["money"] == 0 
+    def test_update_stats(self, mock_auth, mock_supabase):
+        """Test updating a stat"""
+        # Mock the current stats
+        mock_execute = MagicMock()
+        mock_execute.data = [{
+            "hunger": 70,
+            "stress": 30,
+            "tone": 60,
+            "health": 80,
+            "money": 2000
+        }]
+        mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_execute
+        
+        # Make the request to update hunger
+        response = client.post(
+            "/stats",
+            json={
+                "stat_type": "hunger",
+                "value": -10,
+                "reason": "Ate lunch"
+            }
+        )
+        
+        # Check the response
+        assert response.status_code == 200
+        assert response.json() == {"hunger": 60}
+        
+        # Verify the correct database calls were made
+        # Verify update call
+        mock_supabase.table.return_value.update.assert_called_with({"hunger": 60})
+        mock_supabase.table.return_value.update.return_value.eq.assert_called_with("user_id", TEST_USER["sub"])
+        
+        # Verify stat history recording
+        mock_supabase.table.return_value.insert.assert_called_once()
+    
+    def test_update_stats_invalid_type(self, mock_auth, mock_supabase):
+        """Test updating with an invalid stat type"""
+        response = client.post(
+            "/stats",
+            json={
+                "stat_type": "invalid_stat",
+                "value": 10,
+                "reason": "Testing"
+            }
+        )
+        
+        assert response.status_code == 400
+        assert "Invalid stat type" in response.json()["detail"]
+    
+    def test_update_stats_enforces_limits(self, mock_auth, mock_supabase):
+        """Test that stat updates enforce the 0-100 limits for appropriate stats"""
+        # Setup current stats
+        mock_execute = MagicMock()
+        mock_execute.data = [{
+            "hunger": 90,
+            "stress": 10,
+            "tone": 50,
+            "health": 50,
+            "money": 1000
+        }]
+        mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_execute
+        
+        # Try to increase hunger above 100
+        response = client.post(
+            "/stats",
+            json={
+                "stat_type": "hunger",
+                "value": 20,  # Would make hunger 110, but should cap at 100
+                "reason": "Testing limits"
+            }
+        )
+        
+        assert response.status_code == 200
+        assert response.json() == {"hunger": 100}  # Should be capped at 100
+        
+        # Try to decrease stress below 0
+        response = client.post(
+            "/stats",
+            json={
+                "stat_type": "stress",
+                "value": -20,  # Would make stress -10, but should floor at 0
+                "reason": "Testing limits"
+            }
+        )
+        
+        assert response.status_code == 200
+        assert response.json() == {"stress": 0}  # Should be floored at 0
+    
+    def test_apply_activity_effects(self, mock_auth, mock_supabase):
+        """Test applying activity effects to stats"""
+        # Mock the activity in database
+        mock_activity_response = MagicMock()
+        mock_activity_response.data = [{
+            "id": "work",
+            "name": "Work",
+            "type": "work",
+            "description": "Regular work day",
+            "stats_effects": {
+                "hunger": -10,
+                "stress": 20,
+                "money": 100
+            }
+        }]
+        
+        # Mock the current stats
+        mock_stats_response = MagicMock()
+        mock_stats_response.data = [{
+            "hunger": 70,
+            "stress": 30,
+            "tone": 60,
+            "health": 80,
+            "money": 1000
+        }]
+        
+        # Configure mock to return different responses based on the table name
+        def mock_table_selector(table_name):
+            mock_table = MagicMock()
+            mock_select = MagicMock()
+            mock_table.select.return_value = mock_select
+            
+            if table_name == "activities":
+                mock_select.eq.return_value.execute.return_value = mock_activity_response
+            elif table_name == "user_stats":
+                mock_select.eq.return_value.execute.return_value = mock_stats_response
+            
+            return mock_table
+        
+        mock_supabase.table.side_effect = mock_table_selector
+        
+        # Make the request
+        response = client.post("/stats/activity?activity_id=work")
+        
+        # Check the response
+        assert response.status_code == 200
+        assert "updates" in response.json()
+        updates = response.json()["updates"]
+        assert updates["hunger"] == 60  # 70 - 10
+        assert updates["stress"] == 50  # 30 + 20
+        assert updates["money"] == 1100  # 1000 + 100
+    
+    def test_apply_activity_effects_not_found(self, mock_auth, mock_supabase):
+        """Test applying effects for a non-existent activity"""
+        # Mock empty response for non-existent activity
+        mock_empty_response = MagicMock()
+        mock_empty_response.data = []
+        mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_empty_response
+        
+        response = client.post("/stats/activity?activity_id=nonexistent")
+        
+        assert response.status_code == 404
+        assert "not found" in response.json()["detail"]
+    
+    def test_get_stat_history(self, mock_auth, mock_supabase):
+        """Test retrieving stat history"""
+        # Mock the database response
+        mock_execute = MagicMock()
+        mock_execute.data = [
+            {
+                "user_id": TEST_USER["sub"],
+                "stat_type": "hunger",
+                "previous_value": 70,
+                "new_value": 60,
+                "change": -10,
+                "reason": "Ate lunch",
+                "timestamp": "2023-07-15T10:30:00"
+            },
+            {
+                "user_id": TEST_USER["sub"],
+                "stat_type": "money",
+                "previous_value": 1000,
+                "new_value": 1100,
+                "change": 100,
+                "reason": "Activity: Work",
+                "timestamp": "2023-07-15T09:30:00"
+            }
+        ]
+        
+        # Configure mock to return the history response
+        mock_order = MagicMock()
+        mock_order.limit.return_value.execute.return_value = mock_execute
+        
+        mock_eq = MagicMock()
+        mock_eq.order.return_value = mock_order
+        
+        mock_select = MagicMock()
+        mock_select.eq.return_value = mock_eq
+        
+        mock_table = MagicMock()
+        mock_table.select.return_value = mock_select
+        
+        mock_supabase.table.return_value = mock_table
+        
+        # Make the request
+        response = client.get("/stats/history")
+        
+        # Check the response
+        assert response.status_code == 200
+        assert len(response.json()) == 2
+        assert response.json()[0]["stat_type"] == "hunger"
+        assert response.json()[1]["stat_type"] == "money"
+        
+        # Verify the correct database calls were made
+        mock_supabase.table.assert_called_with("stat_history")
+        mock_table.select.assert_called_with("*")
+        mock_select.eq.assert_called_with("user_id", TEST_USER["sub"])
+        mock_eq.order.assert_called_with("timestamp", desc=True)
+        mock_order.limit.assert_called_with(20)
+    
+    def test_get_stat_history_filtered(self, mock_auth, mock_supabase):
+        """Test retrieving stat history filtered by type"""
+        # Mock the database response for filtered query
+        mock_execute = MagicMock()
+        mock_execute.data = [
+            {
+                "user_id": TEST_USER["sub"],
+                "stat_type": "hunger",
+                "previous_value": 70,
+                "new_value": 60,
+                "change": -10,
+                "reason": "Ate lunch",
+                "timestamp": "2023-07-15T10:30:00"
+            }
+        ]
+        
+        # Configure mock similar to previous test
+        mock_order = MagicMock()
+        mock_order.limit.return_value.execute.return_value = mock_execute
+        
+        mock_eq2 = MagicMock()
+        mock_eq2.order.return_value = mock_order
+        
+        mock_eq1 = MagicMock()
+        mock_eq1.eq.return_value = mock_eq2
+        
+        mock_select = MagicMock()
+        mock_select.eq.return_value = mock_eq1
+        
+        mock_table = MagicMock()
+        mock_table.select.return_value = mock_select
+        
+        mock_supabase.table.return_value = mock_table
+        
+        # Make the request with filter
+        response = client.get("/stats/history?stat_type=hunger")
+        
+        # Check the response
+        assert response.status_code == 200
+        assert len(response.json()) == 1
+        assert response.json()[0]["stat_type"] == "hunger"
+        
+        # Verify the correct filter was applied
+        mock_eq1.eq.assert_called_with("stat_type", "hunger") 

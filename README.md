@@ -74,28 +74,152 @@ A Tamagotchi-style browser game where you guide a quarantined freelancer through
 
 ## API Documentation
 
-### Authentication
+The game's backend provides several RESTful API endpoints to manage game state and user interactions.
 
-The game uses Supabase Auth for authentication. API calls require a valid JWT token.
+### Core API Endpoints
 
-- **POST /auth/login**: Log in with email/password
-- **POST /auth/register**: Create a new account
-- **POST /auth/refresh**: Refresh authentication token
+#### Stats API
 
-### Game Endpoints
+- **GET /stats**
+  - Description: Retrieves current character stats
+  - Authentication: Required
+  - Response: JSON object with hunger, stress, tone, health, and money values
+  - Example: `curl -H "Authorization: Bearer $TOKEN" http://localhost:8000/stats`
 
-- **GET /game/stats**: Get character stats
-- **POST /game/activity**: Apply activity effects
-- **GET /game/schedule**: Get current schedule
-- **POST /game/schedule**: Update schedule
+- **POST /stats**
+  - Description: Updates a specific stat value
+  - Authentication: Required
+  - Request Body: JSON with stat_type, value, and reason
+  - Example: 
+    ```json
+    {
+      "stat_type": "hunger",
+      "value": -10,
+      "reason": "Ate lunch"
+    }
+    ```
 
-### Shop Endpoints
+#### Schedule API
 
-- **GET /shop**: Get available shop items
-- **GET /shop/inventory**: Get user's inventory
-- **POST /shop/purchase**: Purchase item (with payment_method_id for Stripe)
-- **POST /shop/ingame**: Purchase with in-game currency
-- **POST /shop/use/{item_id}**: Use an item from inventory
+- **GET /schedule**
+  - Description: Retrieves schedule for a specific day (defaults to current day)
+  - Authentication: Required
+  - Query Parameters: day (optional, ISO format YYYY-MM-DD)
+  - Example: `curl -H "Authorization: Bearer $TOKEN" http://localhost:8000/schedule?day=2023-07-15`
+
+- **POST /schedule**
+  - Description: Saves or updates a daily schedule
+  - Authentication: Required
+  - Request Body: JSON with date and blocks array
+  - Example:
+    ```json
+    {
+      "date": "2023-07-15T00:00:00",
+      "blocks": [
+        {
+          "activity_id": "act1",
+          "start_hour": 8,
+          "duration_hours": 4
+        }
+      ]
+    }
+    ```
+
+- **GET /schedule/activities**
+  - Description: Lists all available activities for scheduling
+  - Authentication: Required
+  - Example: `curl -H "Authorization: Bearer $TOKEN" http://localhost:8000/schedule/activities`
+
+#### Shop API
+
+- **GET /shop**
+  - Description: Lists all shop items, optionally filtered by category
+  - Authentication: Required
+  - Query Parameters: category (optional)
+  - Example: `curl -H "Authorization: Bearer $TOKEN" http://localhost:8000/shop?category=plants`
+
+- **GET /shop/inventory**
+  - Description: Gets user's inventory of purchased items
+  - Authentication: Required
+  - Example: `curl -H "Authorization: Bearer $TOKEN" http://localhost:8000/shop/inventory`
+
+- **POST /shop/purchase**
+  - Description: Purchases an item using real money (Stripe)
+  - Authentication: Required
+  - Request Body: JSON with item_id, quantity, and payment_method_id
+  - Example:
+    ```json
+    {
+      "item_id": "premium_theme",
+      "quantity": 1,
+      "payment_method_id": "pm_card_visa"
+    }
+    ```
+
+- **POST /shop/ingame**
+  - Description: Purchases an item using in-game currency
+  - Authentication: Required
+  - Request Body: JSON with item_id and quantity
+  - Example:
+    ```json
+    {
+      "item_id": "plant_cactus",
+      "quantity": 1
+    }
+    ```
+
+- **POST /shop/use/{item_id}**
+  - Description: Uses an item from inventory
+  - Authentication: Required
+  - URL Parameters: item_id
+  - Example: `curl -X POST -H "Authorization: Bearer $TOKEN" http://localhost:8000/shop/use/plant_cactus`
+
+### OpenAPI Documentation
+
+The API includes automatic OpenAPI (Swagger) documentation:
+
+- **Swagger UI**: Visit `http://localhost:8000/docs` in your browser
+- **OpenAPI JSON**: Available at `http://localhost:8000/openapi.json`
+
+### Testing Endpoints
+
+1. Start the backend server:
+   ```
+   cd backend
+   python -m uvicorn main:app --reload
+   ```
+
+2. Obtain an authentication token by logging in via frontend or using direct API call:
+   ```
+   curl -X POST "http://localhost:8000/auth/login" -H "Content-Type: application/json" -d '{"email": "user@example.com", "password": "password"}'
+   ```
+
+3. Use the token for authenticated requests:
+   ```
+   curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8000/stats
+   ```
+
+4. For testing Stripe payments, use Stripe's test card numbers:
+   - Success: 4242 4242 4242 4242
+   - Requires authentication: 4000 0025 0000 3155
+   - Declined: 4000 0000 0000 0002
+
+5. Test webhooks locally with Stripe CLI:
+   ```
+   stripe listen --forward-to localhost:8000/shop/webhook
+   ```
+
+### Error Handling
+
+All endpoints return standard HTTP status codes:
+
+- 200: Success
+- 400: Bad request (invalid parameters)
+- 401: Unauthorized (missing or invalid token)
+- 404: Resource not found
+- 500: Server error
+
+Error responses include a detail message explaining the issue.
 
 ## Deployment Guide
 
