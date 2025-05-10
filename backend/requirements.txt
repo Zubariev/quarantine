@@ -8,3 +8,9 @@ uvicorn[standard]==0.29.0
 openai
 beautifulsoup4
 requests
+pydantic>=2.0.0
+httpx>=0.24.0
+supabase>=2.0.0
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+stripe>=6.0.0

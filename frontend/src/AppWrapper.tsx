@@ -4,6 +4,8 @@ import { Head } from "./internal-components/Head";
 import { ThemeProvider } from "./internal-components/ThemeProvider";
 import { OuterErrorBoundary } from "./prod-components/OuterErrorBoundary";
 import { router } from "./router";
+import { Toaster } from "sonner";
+import AudioManager from "./components/AudioManager";
 
 export const AppWrapper = () => {
   return (
@@ -11,6 +13,8 @@ export const AppWrapper = () => {
       <ThemeProvider defaultTheme={DEFAULT_THEME}>
         <RouterProvider router={router} />
         <Head />
+        <Toaster position="top-right" />
+        <AudioManager />
       </ThemeProvider>
     </OuterErrorBoundary>
   );
