@@ -31,13 +31,9 @@ cat > frontend/.env << 'EOL'
 # API URL - development
 VITE_API_URL=http://localhost:8000
 
-# Firebase configuration
-VITE_FIREBASE_API_KEY=your_firebase_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_app.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_app.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
+# Supabase configuration
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Stripe configuration
 VITE_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key

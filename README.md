@@ -228,6 +228,17 @@ Error responses include a detail message explaining the issue.
 
 ## Deployment Guide
 
+### Database Setup (Supabase)
+
+1. Create a Supabase account and project at [https://supabase.com](https://supabase.com)
+2. Get your Supabase URL and service key from the project settings
+3. Run the migration script to set up all required tables:
+   ```bash
+   cd backend/migrations
+   ./apply_migration.sh
+   ```
+4. Verify that all tables were created correctly in the Supabase dashboard
+
 ### Frontend (Vercel)
 
 1. Connect your GitHub repository to Vercel
