@@ -1,38 +1,45 @@
 import { useEffect } from "react";
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import GameRoom from "./components/GameRoom";
+import useGameStore from "./utils/gameStore";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
+const Game = () => {
+  const { initializeGame, startGame, advanceTime, isGameRunning, isGameOver, gameOverReason } = useGameStore();
 
   useEffect(() => {
-    helloWorldApi();
-  }, []);
+    // Initialize the game when component mounts
+    initializeGame();
+    startGame();
+
+    // Set up time advancement
+    const interval = setInterval(() => {
+      if (isGameRunning && !isGameOver) {
+        advanceTime();
+      }
+    }, 3000); // Advance time every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [initializeGame, startGame, advanceTime, isGameRunning, isGameOver]);
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
+    <div className="w-full h-screen">
+      {isGameOver ? (
+        <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100">
+          <div className="bg-white p-8 rounded-xl shadow-xl text-center max-w-md">
+            <h2 className="text-3xl font-bold mb-4 text-red-600">Game Over</h2>
+            <p className="text-xl mb-6">{gameOverReason}</p>
+            <button
+              onClick={() => useGameStore.getState().resetGame()}
+              className="px-6 py-3 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              Start Again
+            </button>
+          </div>
+        </div>
+      ) : (
+        <GameRoom />
+      )}
     </div>
   );
 };
@@ -42,9 +49,7 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
+          <Route path="/" element={<Game />} />
         </Routes>
       </BrowserRouter>
     </div>

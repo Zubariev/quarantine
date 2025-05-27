@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import useGameStore from '../utils/gameStore';
-import { activities } from '../utils/gameStore';
+import { activities } from './ActivityPalette';
 import FoodOrderModal from './FoodOrderModal';
 
 // Room item interface
