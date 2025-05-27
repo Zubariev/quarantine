@@ -224,6 +224,21 @@ const GameRoom: React.FC = () => {
       {currentActivityId === 'tv' && (
         <div className="absolute top-1/3 left-1/2 w-1 h-1 bg-white rounded-full animate-pulse"></div>
       )}
+      {/* Food Order Button */}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+        <button
+          onClick={() => setShowFoodModal(true)}
+          className="px-6 py-3 bg-gradient-to-r from-orange-400 to-red-400 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 border-2 border-orange-300"
+        >
+          🍕 Order Food
+        </button>
+      </div>
+
+      {/* Food Order Modal */}
+      <FoodOrderModal 
+        isOpen={showFoodModal} 
+        onClose={() => setShowFoodModal(false)} 
+      />
     </div>
   );
 };
