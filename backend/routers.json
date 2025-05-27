@@ -1,0 +1,13 @@
+{
+  "routers": {
+    "stats": {
+      "disableAuth": false
+    },
+    "schedule": {
+      "disableAuth": false
+    },
+    "shop": {
+      "disableAuth": false
+    }
+  }
+}
