@@ -1,4 +1,26 @@
-// Define stat changes per hour for each activity\n// Based on user requirements doc\nconst activityEffects: { \n  [key: string]: Partial<Stats> \n} = {\n  work:          { hunger: -5, stress: +5, tone: -5, money: +10 },\n  sleep:         {            stress: -8, tone: +10, health: +2 },\n  eat_fast:      { hunger: +50, stress: -2, tone: -2, health: -10, money: -5 }, // Assuming this is \'Order Fast Food\'\n  eat_healthy:   { hunger: +30, stress: -1,           health: +5,  money: -15}, // Assuming this is \'Order Healthy Meal\'\n  tv:            { hunger: -1, stress: -10, tone: -5 }, // Assuming this is \'Watch TV / Stream\'\n  games:         { hunger: -1, stress: -15, tone: -10, health: -5 }, // Assuming this is \'Play Computer Games\'\n  read:          { hunger: -1, stress: -8, tone: -5,  health: +2 }, // Assuming this is \'Read Books\'\n  // water_flower: {             stress: -5,           health: +1 }, // Name mismatch, skipping for now - User prompt used \'Water & Trim Flower\'\n  exercise:      { hunger: -2, stress: -5, tone: +5,  health: +3 }, // Assuming this is \'Exercise (In-room)\'\n  meditate:      {            stress: -10, tone: +2,  health: +1 }, // Assuming this is \'Meditation\'\n  idle:          { hunger: -2, stress: +1, tone: -1 }, // Default penalty for doing nothing?\ Added placeholder effect.\n};\n\n// Helper function to clamp values within a range\nconst clamp = (value: number, min: number, max: number): number => {\n  return Math.max(min, Math.min(value, max));\n};\n\n
+// Define stat changes per hour for each activity
+// Based on user requirements doc
+const activityEffects: { 
+  [key: string]: Partial<Stats> 
+} = {
+  work:          { hunger: -5, stress: +5, tone: -5, money: +10 },
+  sleep:         {            stress: -8, tone: +10, health: +2 },
+  eat_fast:      { hunger: +50, stress: -2, tone: -2, health: -10, money: -5 }, // Assuming this is 'Order Fast Food'
+  eat_healthy:   { hunger: +30, stress: -1,           health: +5,  money: -15}, // Assuming this is 'Order Healthy Meal'
+  tv:            { hunger: -1, stress: -10, tone: -5 }, // Assuming this is 'Watch TV / Stream'
+  games:         { hunger: -1, stress: -15, tone: -10, health: -5 }, // Assuming this is 'Play Computer Games'
+  read:          { hunger: -1, stress: -8, tone: -5,  health: +2 }, // Assuming this is 'Read Books'
+  water_flower:  {             stress: -5,           health: +1 }, // Flower care mechanic
+  exercise:      { hunger: -2, stress: -5, tone: +5,  health: +3 }, // Assuming this is 'Exercise (In-room)'
+  meditate:      {            stress: -10, tone: +2,  health: +1 }, // Assuming this is 'Meditation'
+  idle:          { hunger: -2, stress: +1, tone: -1 }, // Default penalty for doing nothing? Added placeholder effect.
+};
+
+// Helper function to clamp values within a range
+const clamp = (value: number, min: number, max: number): number => {
+  return Math.max(min, Math.min(value, max));
+};
+
 import { create } from 'zustand';
 import { supabase } from 'utils/supabaseClient'; // Import supabase
 import { Session, User } from '@supabase/supabase-js'; // Import types
@@ -35,7 +57,7 @@ interface GameState {
   currentActivityId: string; // ID of the activity currently being performed
   dailySchedule: Array<{ activityId: string | null }>; // The 24-hour schedule
   isGameRunning: boolean; // To control the game loop
-  gameSpeed: number; // Milliseconds per game *hour* (adjust later for minutes)
+  gameSpeed: number; // Milliseconds per game *hour* - now 1:1 real time
   isLoading: boolean; // For initial loading
   intervalId: number | null; // To store the interval ID for clearing
   isGameOver: boolean; // Flag for game over state
@@ -140,7 +162,7 @@ const useGameStore = create<GameState & GameActions>((set, get) => ({
   currentActivityId: 'idle', // Start with idle
   dailySchedule: loadScheduleFromLocalStorage() || initialSchedule,
   isGameRunning: false,
-  gameSpeed: 5000, // 5 seconds per game hour initially for testing
+  gameSpeed: 3600000, // 1 hour real time = 1 hour game time (1:1 ratio as requested)
   isLoading: true, // Start as loading
   intervalId: null, // Initialize intervalId as null
   isGameOver: false,
