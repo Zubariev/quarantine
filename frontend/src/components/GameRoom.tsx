@@ -61,6 +61,7 @@ const GameRoom: React.FC = () => {
   const { currentActivityId, stats, gameTime, applyStatChanges } = useGameStore();
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
+  const [showFoodModal, setShowFoodModal] = useState(false);
 
   // Find current activity details
   const currentActivity = activities.find(activity => activity.id === currentActivityId);
