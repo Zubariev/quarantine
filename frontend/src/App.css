@@ -238,19 +238,24 @@ body {
 .character {
   position: absolute;
   z-index: 20;
-  transition: all 0.8s ease-in-out;
+  transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .character-sprite {
-  width: 80px;
-  height: 80px;
-  filter: drop-shadow(3px 3px 6px rgba(0, 0, 0, 0.4));
-  animation: characterFloat 2s ease-in-out infinite alternate;
+  width: 90px;
+  height: 90px;
+  filter: drop-shadow(3px 3px 8px rgba(0, 0, 0, 0.4));
+  animation: characterFloat 3s ease-in-out infinite alternate;
+  transition: transform 0.3s ease;
+}
+
+.character-sprite:hover {
+  transform: scale(1.1);
 }
 
 @keyframes characterFloat {
-  0% { transform: translateY(0px); }
-  100% { transform: translateY(-5px); }
+  0% { transform: translateY(0px) rotate(-1deg); }
+  100% { transform: translateY(-8px) rotate(1deg); }
 }
 
 /* Activity Indicator */
