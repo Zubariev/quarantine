@@ -140,7 +140,7 @@ const GameRoom = ({ currentActivity, stats }) => {
   const characterSprite = activitySprites[currentActivity] || 'tama_sleep.png';
 
   // Debug logging
-  React.useEffect(() => {
+  useEffect(() => {
     console.log(`🎯 Activity changed to: ${currentActivity}`);
     console.log(`📍 Character position: x=${currentPosition.x}%, y=${currentPosition.y}%`);
     console.log(`🖼️ Character sprite: ${characterSprite}`);
