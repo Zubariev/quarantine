@@ -139,6 +139,13 @@ const GameRoom = ({ currentActivity, stats }) => {
   const currentPosition = activityPositions[currentActivity] || { x: 50, y: 50 };
   const characterSprite = activitySprites[currentActivity] || 'tama_sleep.png';
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log(`🎯 Activity changed to: ${currentActivity}`);
+    console.log(`📍 Character position: x=${currentPosition.x}%, y=${currentPosition.y}%`);
+    console.log(`🖼️ Character sprite: ${characterSprite}`);
+  }, [currentActivity, currentPosition.x, currentPosition.y, characterSprite]);
+
   return (
     <div className="game-room">
       {/* Room Background */}
