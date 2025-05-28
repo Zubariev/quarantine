@@ -149,22 +149,28 @@ const GameRoom = ({ currentActivity, stats }) => {
         <img src="/assets/sprites/room/tama_bookshelf.png" alt="Bookshelf" />
       </div>
       
-      <div className="room-item bed" style={{ left: '30%', top: '60%' }}>
+      <div className="room-item bed" style={{ left: '25%', top: '60%' }}>
         <img src="/assets/sprites/room/tama_bed.png" alt="Bed" />
       </div>
       
-      <div className="room-item table" style={{ left: '60%', top: '40%' }}>
+      <div className="room-item table" style={{ left: '55%', top: '35%' }}>
         <img src="/assets/sprites/room/tama_table.png" alt="Table" />
       </div>
 
       {/* Window */}
       <div className="room-item window" style={{ right: '10%', top: '10%' }}>
-        <div className="window-frame">☀️</div>
+        <div className="window-frame">
+          ☀️
+          <div className="window-light"></div>
+        </div>
       </div>
 
       {/* TV */}
-      <div className="room-item tv-area" style={{ left: '10%', top: '40%' }}>
-        <div className="tv-screen">📺</div>
+      <div className="room-item tv-area" style={{ left: '5%', top: '40%' }}>
+        <div className="tv-screen">
+          📺
+          <div className="tv-glow"></div>
+        </div>
       </div>
 
       {/* Character */}
