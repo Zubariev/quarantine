@@ -190,9 +190,12 @@ const GameRoom = ({ currentActivity, stats }) => {
         }}
       >
         <img 
+          key={`${currentActivity}-${characterSprite}`}
           src={`/assets/sprites/character/${characterSprite}`} 
-          alt="Character" 
+          alt={`Character ${currentActivity}`} 
           className="character-sprite"
+          onLoad={() => console.log(`✅ Sprite loaded: ${characterSprite}`)}
+          onError={(e) => console.error(`❌ Failed to load sprite: ${characterSprite}`, e)}
         />
       </div>
 
