@@ -191,7 +191,19 @@ const GameRoom = ({ currentActivity, stats }) => {
 
       {/* Activity Indicator */}
       <div className="activity-indicator">
-        Current Activity: {currentActivity.replace('_', ' ').toUpperCase()}
+        <div className="activity-icon-large">
+          {(() => {
+            const activityIcons = {
+              work: '💼', sleep: '😴', eat_fast: '🍔', eat_healthy: '🥗',
+              tv: '📺', games: '🎮', read: '📚', exercise: '🏃‍♂️',
+              meditate: '🧘‍♀️', idle: '😐'
+            };
+            return activityIcons[currentActivity] || '❓';
+          })()}
+        </div>
+        <div className="activity-text">
+          {currentActivity.replace('_', ' ').toUpperCase()}
+        </div>
       </div>
     </div>
   );
