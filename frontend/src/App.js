@@ -238,6 +238,9 @@ function App() {
   const handleActivitySelect = (activity) => {
     setCurrentActivity(activity);
     applyActivityEffects(activity);
+    
+    // Add a small visual feedback
+    console.log(`🎮 Starting activity: ${activity.replace('_', ' ')}`);
   };
 
   // Game loop
