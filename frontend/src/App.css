@@ -183,6 +183,11 @@ body {
 .room-item {
   position: absolute;
   z-index: 10;
+  transition: transform 0.3s ease;
+}
+
+.room-item:hover {
+  transform: scale(1.05);
 }
 
 .room-item img {
@@ -190,22 +195,27 @@ body {
   max-height: 80px;
   width: auto;
   height: auto;
-  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(2px 2px 6px rgba(0, 0, 0, 0.3));
+  transition: filter 0.3s ease;
+}
+
+.room-item:hover img {
+  filter: drop-shadow(3px 3px 10px rgba(0, 0, 0, 0.5));
 }
 
 .bookshelf img {
-  max-width: 60px;
-  max-height: 100px;
+  max-width: 70px;
+  max-height: 110px;
 }
 
 .bed img {
-  max-width: 120px;
-  max-height: 80px;
+  max-width: 130px;
+  max-height: 90px;
 }
 
 .table img {
-  max-width: 100px;
-  max-height: 60px;
+  max-width: 110px;
+  max-height: 70px;
 }
 
 /* Window and TV placeholders */
