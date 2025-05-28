@@ -124,16 +124,16 @@ const ActivityButton = ({ activity, onClick, isActive }) => {
 const GameRoom = ({ currentActivity, stats }) => {
   // Activity to position mapping (where the character should be positioned)
   const activityPositions = {
-    work: { x: 75, y: 50 }, // Computer desk position
-    sleep: { x: 50, y: 75 }, // Bed position
-    eat_fast: { x: 25, y: 75 }, // Kitchen/eating area
-    eat_healthy: { x: 25, y: 75 }, // Kitchen/eating area
-    tv: { x: 25, y: 50 }, // TV position
-    games: { x: 75, y: 50 }, // Computer desk position
-    read: { x: 25, y: 25 }, // Bookshelf position
-    exercise: { x: 50, y: 50 }, // Center of room
-    meditate: { x: 50, y: 50 }, // Center of room
-    idle: { x: 50, y: 50 }, // Center of room
+    work: { x: 70, y: 55 }, // Computer desk position
+    sleep: { x: 40, y: 70 }, // Bed position
+    eat_fast: { x: 65, y: 45 }, // Table/eating area
+    eat_healthy: { x: 65, y: 45 }, // Table/eating area
+    tv: { x: 20, y: 50 }, // TV position
+    games: { x: 70, y: 55 }, // Computer desk position
+    read: { x: 15, y: 20 }, // Bookshelf position
+    exercise: { x: 50, y: 35 }, // Center of room
+    meditate: { x: 50, y: 35 }, // Center of room
+    idle: { x: 45, y: 60 }, // Relaxing position
   };
 
   const currentPosition = activityPositions[currentActivity] || { x: 50, y: 50 };
